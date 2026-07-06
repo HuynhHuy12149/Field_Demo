@@ -1,5 +1,5 @@
 # ---------- BƯỚC 1: BUILD FRONTEND (NEXT.JS) ----------
-FROM node:18-alpine AS build-fe
+FROM node:20-alpine AS build-fe
 WORKDIR /fe
 # Copy file cấu hình package để cài thư viện trước
 COPY field-web/package*.json ./
