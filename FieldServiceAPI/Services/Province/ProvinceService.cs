@@ -1,5 +1,6 @@
-﻿using FieldServiceAPI.Data;
+using FieldServiceAPI.Data;
 using FieldServiceAPI.DTOs.Province;
+using FieldServiceAPI.Mappers;
 using Microsoft.EntityFrameworkCore;
 
 namespace FieldServiceAPI.Services.Province
@@ -16,11 +17,7 @@ namespace FieldServiceAPI.Services.Province
         public async Task<List<ProvinceResponse>> GetAllAsync()
         {
             return await _context.Provinces
-                .Select(p => new ProvinceResponse
-                {
-                    Id = p.Id,
-                    Name = p.Name
-                })
+                .ProjectToDTO()
                 .ToListAsync();
         }
     }

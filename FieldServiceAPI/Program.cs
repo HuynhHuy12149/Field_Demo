@@ -1,6 +1,4 @@
-﻿using FieldServiceAPI.Data;
-using FieldServiceAPI.Services.Province;
-using Microsoft.EntityFrameworkCore;
+using FieldServiceAPI.Extensions;
 
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
@@ -12,17 +10,20 @@ builder.Configuration
     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
     .AddEnvironmentVariables();
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
-);
-
-builder.Services.AddScoped<ProvinceService>();
+builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+// SwaggerGen đã được chuyển vào AddApplicationServices trong DependencyInjection.cs
 
 var app = builder.Build();
+
+// Tạo Scope để lấy AuthService và chạy hàm Seed
+using (var scope = app.Services.CreateScope())
+{
+    var authService = scope.ServiceProvider.GetRequiredService<FieldServiceAPI.Services.Auth.AuthService>();
+    await authService.SeedAdminUserAsync();
+}
 
 // Swagger dev only
 if (app.Environment.IsDevelopment())
@@ -31,10 +32,21 @@ if (app.Environment.IsDevelopment())
 app.UseSwagger();
 app.UseSwaggerUI();
 
+app.UseRouting();
+app.UseCors("AllowAll");
 app.UseHttpsRedirection();
-app.UseAuthorization();
-app.MapControllers();
 
-// Lấy port từ Render
+// Thêm Middleware Authentication TRƯỚC Authorization
+app.UseAuthentication();
+app.UseAuthorization();
+
+// Phục vụ file tĩnh từ wwwroot (thư mục build của Next.js)
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
+app.MapControllers();
+app.MapFallbackToFile("index.html");
+
+// Lấy port từ Render (hoặc HuggingFace)
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 app.Run();
