@@ -126,6 +126,7 @@ namespace FieldServiceAPI.Services.User
                 }
 
                 request.UpdateEntity(entity);
+                _context.Entry(entity).State = EntityState.Modified;
 
                 // Nếu có nhập mật khẩu mới thì băm và cập nhật
                 if (!string.IsNullOrEmpty(request.Password))
@@ -136,16 +137,26 @@ namespace FieldServiceAPI.Services.User
                 if (request.RoleIds != null)
                 {
                     var existingRoles = await _context.UserRoles.Where(ur => ur.UserId == entity.Id).ToListAsync();
-                    _context.UserRoles.RemoveRange(existingRoles);
+                    var existingRoleIds = existingRoles.Select(ur => ur.RoleId).ToList();
+                    var newRoleIds = request.RoleIds;
 
-                    if (request.RoleIds.Any())
+                    var rolesToRemove = existingRoles.Where(ur => !newRoleIds.Contains(ur.RoleId)).ToList();
+                    var rolesToAdd = newRoleIds.Where(id => !existingRoleIds.Contains(id)).Select(roleId => new UserRole
                     {
-                        var userRoles = request.RoleIds.Select(roleId => new UserRole
-                        {
-                            UserId = entity.Id,
-                            RoleId = roleId
-                        }).ToList();
-                        _context.UserRoles.AddRange(userRoles);
+                        UserId = entity.Id,
+                        RoleId = roleId
+                    }).ToList();
+
+                    if (rolesToRemove.Any())
+                    {
+                        _context.UserRoles.RemoveRange(rolesToRemove);
+                        _context.Entry(entity).State = EntityState.Modified;
+                    }
+
+                    if (rolesToAdd.Any())
+                    {
+                        _context.UserRoles.AddRange(rolesToAdd);
+                        _context.Entry(entity).State = EntityState.Modified;
                     }
                 }
 

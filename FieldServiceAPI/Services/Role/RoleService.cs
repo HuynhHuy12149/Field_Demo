@@ -90,6 +90,7 @@ namespace FieldServiceAPI.Services.Role
                 }
 
                 updateRoleRequest.UpdateEntity(entity);
+                _context.Entry(entity).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
                 
                 response.Data = entity.ToDTO();
@@ -162,18 +163,25 @@ namespace FieldServiceAPI.Services.Role
                 var existingClaims = await _context.RoleClaims
                     .Where(x => x.RoleId == roleId && x.ClaimType == "Permission")
                     .ToListAsync();
-                _context.RoleClaims.RemoveRange(existingClaims);
+                var existingClaimValues = existingClaims.Select(c => c.ClaimValue).ToList();
+                var newClaimValues = claims ?? new List<string>();
 
-                if (claims != null && claims.Any())
+                var claimsToRemove = existingClaims.Where(c => !newClaimValues.Contains(c.ClaimValue)).ToList();
+                var claimsToAdd = newClaimValues.Where(c => !existingClaimValues.Contains(c)).Select(c => new RoleClaim
                 {
-                    var newClaims = claims.Select(c => new RoleClaim
-                    {
-                        RoleId = roleId,
-                        ClaimType = "Permission",
-                        ClaimValue = c
-                    }).ToList();
-                    
-                    _context.RoleClaims.AddRange(newClaims);
+                    RoleId = roleId,
+                    ClaimType = "Permission",
+                    ClaimValue = c
+                }).ToList();
+
+                if (claimsToRemove.Any())
+                {
+                    _context.RoleClaims.RemoveRange(claimsToRemove);
+                }
+
+                if (claimsToAdd.Any())
+                {
+                    _context.RoleClaims.AddRange(claimsToAdd);
                 }
                 
                 await _context.SaveChangesAsync();

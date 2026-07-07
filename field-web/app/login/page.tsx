@@ -18,13 +18,13 @@ export default function LoginPage() {
 
   const loginMutation = useMutation({
     mutationFn: async () => {
-      const data = await authService.login({ email, password });
-      if (!data.permissions || data.permissions.length === 0) {
-        throw new Error("Tài khoản của bạn chưa được phân quyền để truy cập hệ thống!");
-      }
-      return data;
+      return await authService.login({ email, password });
     },
     onSuccess: (data) => {
+      if (!data.permissions || data.permissions.length === 0) {
+        toast.error("Tài khoản của bạn chưa được phân quyền để truy cập hệ thống!");
+        return;
+      }
       // Lưu vào Zustand (được tự động mã hóa vào localStorage)
       setAuth(
         { id: "", email: data.email, fullName: data.fullName, permissions: data.permissions },

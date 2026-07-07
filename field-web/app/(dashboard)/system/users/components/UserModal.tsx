@@ -69,10 +69,10 @@ export function UserModal({ isOpen, onClose, onSave, initialData }: UserModalPro
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { id, value, type } = e.target;
-    
+
     // Nếu là checkbox thì lấy checked thay vì value
     const val = type === "checkbox" ? (e.target as HTMLInputElement).checked : value;
-    
+
     setFormData((prev) => ({
       ...prev,
       [id]: val,
@@ -93,10 +93,10 @@ export function UserModal({ isOpen, onClose, onSave, initialData }: UserModalPro
       { value: formData.fullName, errorMessage: "Vui lòng nhập Họ tên!" },
       { value: formData.email, errorMessage: "Vui lòng nhập Email!" },
     ];
-    
+
     // Khi thêm mới thì bắt buộc nhập mật khẩu
     if (!initialData) {
-       fieldsToValidate.push({ value: formData.password, errorMessage: "Vui lòng nhập mật khẩu!" });
+      fieldsToValidate.push({ value: formData.password || "", errorMessage: "Vui lòng nhập mật khẩu!" });
     }
 
     return validateFields(fieldsToValidate);
@@ -158,6 +158,7 @@ export function UserModal({ isOpen, onClose, onSave, initialData }: UserModalPro
               onChange={handleChange}
               className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               placeholder="Nhập họ tên..."
+              required
             />
           </div>
 
@@ -172,6 +173,7 @@ export function UserModal({ isOpen, onClose, onSave, initialData }: UserModalPro
               onChange={handleChange}
               className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               placeholder="Nhập email..."
+              required
             />
           </div>
         </div>
@@ -202,6 +204,7 @@ export function UserModal({ isOpen, onClose, onSave, initialData }: UserModalPro
               onChange={handleChange}
               className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               placeholder="Nhập mật khẩu..."
+              required={initialData ? false : true}
             />
           </div>
         </div>
@@ -232,9 +235,9 @@ export function UserModal({ isOpen, onClose, onSave, initialData }: UserModalPro
               <span className="truncate text-slate-700 dark:text-slate-300">
                 {formData.roleIds.length > 0 && rolesData?.data
                   ? rolesData.data
-                      .filter((r) => formData.roleIds.includes(r.id))
-                      .map((r) => r.name)
-                      .join(", ")
+                    .filter((r) => formData.roleIds.includes(r.id))
+                    .map((r) => r.name)
+                    .join(", ")
                   : <span className="text-slate-400">Chọn nhóm quyền...</span>}
               </span>
               <ChevronDown size={16} className={`text-slate-400 transition-transform ${isRoleDropdownOpen ? "rotate-180" : ""}`} />
@@ -242,8 +245,8 @@ export function UserModal({ isOpen, onClose, onSave, initialData }: UserModalPro
 
             {isRoleDropdownOpen && (
               <>
-                <div 
-                  className="fixed inset-0 z-10" 
+                <div
+                  className="fixed inset-0 z-10"
                   onClick={() => setIsRoleDropdownOpen(false)}
                 ></div>
                 <div className="absolute z-20 w-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md shadow-lg max-h-60 overflow-auto">
@@ -256,7 +259,7 @@ export function UserModal({ isOpen, onClose, onSave, initialData }: UserModalPro
                       <input
                         type="checkbox"
                         checked={formData.roleIds.includes(role.id)}
-                        onChange={() => {}} // Handle bằng onClick thẻ div bao ngoài
+                        onChange={() => { }} // Handle bằng onClick thẻ div bao ngoài
                         className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 mr-3 pointer-events-none"
                       />
                       <span className="text-sm text-slate-700 dark:text-slate-300">{role.name}</span>
