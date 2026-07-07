@@ -45,15 +45,13 @@ jobs:
         run: cp Dockerfile.hf ./publish_folder/Dockerfile
 
       - name: 8. Deploy thư mục thành phẩm sang Hugging Face
-        uses: cpina/github-action-push-to-another-repository@main
         env:
-          API_TOKEN_GITHUB: ${{ secrets.HF_TOKEN }}
-        with:
-          source-directory: 'publish_folder'
-          destination-github-username: 'huynhhuy12149'
-          # Tên space của bạn trên Hugging Face
-          destination-repository-name: 'fieldserviceapi'
-          user-email: bot@github.com
-          target-branch: main
-          target-directory: ''
-          destination-repository-url: 'https://huggingface.co/spaces'
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          cd publish_folder
+          git init
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add .
+          git commit -m "Deploy from GitHub Actions"
+          git push --force https://huynhhuy12149:$HF_TOKEN@huggingface.co/spaces/huynhhuy12149/fieldserviceapi main
