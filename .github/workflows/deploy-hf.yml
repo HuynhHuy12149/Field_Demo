@@ -1,0 +1,59 @@
+name: Build and Deploy to HF
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. Checkout code
+        uses: actions/checkout@v3
+
+      # === BUILD FRONTEND (NEXT.JS) ===
+      - name: 2. Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          
+      - name: 3. Build Next.js
+        working-directory: ./field-web
+        run: |
+          npm ci
+          npm run build
+        env:
+          NEXT_PUBLIC_API_URL: /api
+
+      # === BUILD BACKEND (.NET) ===
+      - name: 4. Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: 5. Build .NET Backend
+        run: dotnet publish ./FieldServiceAPI/FieldServiceAPI.csproj -c Release -o ./publish_folder
+
+      # === GOM HÀNG & ĐẨY QUA HF ===
+      - name: 6. Gộp Next.js vào wwwroot của .NET
+        run: |
+          mkdir -p ./publish_folder/wwwroot
+          cp -r ./field-web/out/* ./publish_folder/wwwroot/
+
+      - name: 7. Đưa Dockerfile "siêu nhẹ" vào thư mục thành phẩm
+        run: cp Dockerfile.hf ./publish_folder/Dockerfile
+
+      - name: 8. Deploy thư mục thành phẩm sang Hugging Face
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.HF_TOKEN }}
+        with:
+          source-directory: 'publish_folder'
+          destination-github-username: 'huynhhuy12149'
+          # Tên space của bạn trên Hugging Face
+          destination-repository-name: 'fieldserviceapi'
+          user-email: bot@github.com
+          target-branch: main
+          target-directory: ''
+          destination-repository-url: 'https://huggingface.co/spaces'

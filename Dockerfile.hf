@@ -1,0 +1,13 @@
+# Chỉ dùng image Runtime siêu nhẹ của .NET (không chứa SDK nặng nề)
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+WORKDIR /app
+
+# Copy toàn bộ file đã được GitHub biên dịch vào máy chủ HF
+COPY . .
+
+# Mở port 7860 theo yêu cầu của Hugging Face
+EXPOSE 7860
+ENV ASPNETCORE_URLS=http://0.0.0.0:7860
+
+# Chạy backend
+ENTRYPOINT ["dotnet", "FieldServiceAPI.dll"]
