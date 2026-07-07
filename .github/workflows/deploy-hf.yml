@@ -41,8 +41,10 @@ jobs:
           mkdir -p ./publish_folder/wwwroot
           cp -r ./field-web/out/* ./publish_folder/wwwroot/
 
-      - name: 7. Đưa Dockerfile "siêu nhẹ" vào thư mục thành phẩm
-        run: cp Dockerfile.hf ./publish_folder/Dockerfile
+      - name: 7. Đưa Dockerfile và cấu hình README vào thư mục thành phẩm
+        run: |
+          cp Dockerfile.hf ./publish_folder/Dockerfile
+          cp README.md ./publish_folder/README.md
 
       - name: 8. Deploy thư mục thành phẩm sang Hugging Face
         env:
