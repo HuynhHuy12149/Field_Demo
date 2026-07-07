@@ -7,14 +7,17 @@ import { RolesHeader } from "./components/RolesHeader";
 import { RolesSearch } from "./components/RolesSearch";
 import { getColumns } from "./components/columns";
 import { RoleModal } from "./components/RoleModal";
+import { RolePermissionsModal } from "./components/RolePermissionsModal";
 import { ConfirmModal } from "@/components/Modal/ConfirmModal";
 import { rolesService, RoleRequest, RoleResponse } from "@/core/services/roles.service";
 import { SortingState, PaginationState } from "@tanstack/react-table";
 import toast from "react-hot-toast";
+import { LoadingOverlay } from "@/components/Loading/LoadingOverlay";
 
 export default function RolesPage() {
   const [globalFilter, setGlobalFilter] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<RoleResponse | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [roleToDelete, setRoleToDelete] = useState<number | null>(null);
@@ -27,9 +30,15 @@ export default function RolesPage() {
   const sortOrder = sorting.length > 0 ? (sorting[0].desc ? "desc" : "asc") : undefined;
 
   // Fetch Roles
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ["roles", globalFilter, sortColumn, sortOrder, pagination.pageIndex, pagination.pageSize],
-    queryFn: () => rolesService.getAll(pagination.pageIndex + 1, pagination.pageSize, globalFilter, sortColumn, sortOrder),
+    queryFn: () => rolesService.getAll({
+      pageIndex: pagination.pageIndex + 1,
+      pageSize: pagination.pageSize,
+      searchTerm: globalFilter,
+      sortColumn,
+      sortOrder
+    }),
   });
 
   // Mutations
@@ -40,7 +49,10 @@ export default function RolesPage() {
       setIsModalOpen(false);
       toast.success("Thêm mới nhóm quyền thành công!");
     },
-    onError: () => toast.error("Có lỗi xảy ra khi thêm mới!"),
+    // Lỗi sẽ được catch ở RoleModal để hiển thị thông báo chi tiết
+    onError: (error) => {
+      toast.error(error.message || "Đã xảy ra lỗi khi lưu thông tin");
+    },
   });
 
   const updateMutation = useMutation({
@@ -50,7 +62,9 @@ export default function RolesPage() {
       setIsModalOpen(false);
       toast.success("Cập nhật nhóm quyền thành công!");
     },
-    onError: () => toast.error("Có lỗi xảy ra khi cập nhật!"),
+    onError: (error) => {
+      toast.error(error.message || "Đã xảy ra lỗi khi lưu thông tin");
+    },
   });
 
   const deleteMutation = useMutation({
@@ -75,6 +89,11 @@ export default function RolesPage() {
     setIsModalOpen(true);
   };
 
+  const handlePermissions = (role: RoleResponse) => {
+    setSelectedRole(role);
+    setIsPermissionsModalOpen(true);
+  };
+
   const handleDelete = (id: number) => {
     setRoleToDelete(id);
     setIsDeleteModalOpen(true);
@@ -94,7 +113,7 @@ export default function RolesPage() {
     }
   };
 
-  const columns = useMemo(() => getColumns(handleEdit, handleDelete), []);
+  const columns = useMemo(() => getColumns(handleEdit, handleDelete, handlePermissions), []);
 
   return (
     <div className="space-y-6 h-[calc(100vh-160px)] flex flex-col">
@@ -104,9 +123,18 @@ export default function RolesPage() {
       <div className="flex-1 min-h-0 relative flex flex-col">
         <DataTable
           columns={columns}
-          data={data?.data || []}
+          dataTable={data?.data || []}
           globalFilter={globalFilter}
-          filterContent={<RolesSearch onSearch={setGlobalFilter} />}
+          filterContent={
+            <RolesSearch
+              onSearch={(val) => {
+                setGlobalFilter(val);
+                setPagination(prev => ({ ...prev, pageIndex: 0 }));
+                // setTimeout để đảm bảo state đã cập nhật trước khi gọi refetch
+                setTimeout(() => refetch(), 0);
+              }}
+            />
+          }
           sorting={sorting}
           onSortingChange={setSorting}
           manualSorting={true}
@@ -115,11 +143,7 @@ export default function RolesPage() {
           manualPagination={true}
           pageCount={data?.totalPages ?? -1}
         />
-        {isLoading && (
-          <div className="absolute inset-0 bg-white/50 dark:bg-slate-900/50 flex items-center justify-center">
-            <span className="text-sm text-slate-500">Đang tải...</span>
-          </div>
-        )}
+        <LoadingOverlay isLoading={isLoading} />
       </div>
 
       <RoleModal
@@ -137,6 +161,12 @@ export default function RolesPage() {
         message="Bạn có chắc chắn muốn xóa nhóm quyền này không? Hành động này không thể hoàn tác."
         confirmText="Xóa"
         isLoading={deleteMutation.isPending}
+      />
+
+      <RolePermissionsModal
+        isOpen={isPermissionsModalOpen}
+        onClose={() => setIsPermissionsModalOpen(false)}
+        role={selectedRole}
       />
     </div>
   );

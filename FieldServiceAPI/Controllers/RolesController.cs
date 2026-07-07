@@ -62,5 +62,27 @@ namespace FieldServiceAPI.Controllers
             }
             return BadRequest(response);
         }
+
+        [HttpGet("{id}/claims")]
+        public async Task<IActionResult> GetClaims(int id)
+        {
+            var response = await _roleService.GetRoleClaimsAsync(id);
+            if (response.Success)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
+
+        [HttpPost("{id}/claims")]
+        public async Task<IActionResult> UpdateClaims(int id, [FromBody] System.Collections.Generic.List<string> claims)
+        {
+            var response = await _roleService.UpdateRoleClaimsAsync(id, claims);
+            if (response.Success)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response);
+        }
     }
 }

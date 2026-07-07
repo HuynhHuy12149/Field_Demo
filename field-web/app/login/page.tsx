@@ -7,31 +7,36 @@ import { authService } from "@/core/services/auth.service";
 import { useAuthStore } from "@/core/store/useAuthStore";
 import { useRouter } from "next/navigation";
 
+import toast from "react-hot-toast";
+
 export default function LoginPage() {
   const [email, setEmail] = useState("admin@gmail.com");
   const [password, setPassword] = useState("123456");
-  const [errorMsg, setErrorMsg] = useState("");
 
   const setAuth = useAuthStore((state) => state.setAuth);
   const router = useRouter();
 
   const loginMutation = useMutation({
     mutationFn: async () => {
-      return await authService.login({ email, password });
+      const data = await authService.login({ email, password });
+      if (!data.permissions || data.permissions.length === 0) {
+        throw new Error("Tài khoản của bạn chưa được phân quyền để truy cập hệ thống!");
+      }
+      return data;
     },
     onSuccess: (data) => {
       // Lưu vào Zustand (được tự động mã hóa vào localStorage)
       setAuth(
-        { id: "", email: data.email, fullName: data.fullName },
+        { id: "", email: data.email, fullName: data.fullName, permissions: data.permissions },
         data.token
       );
-      setErrorMsg("");
+      toast.success("Đăng nhập thành công!");
       // Chuyển hướng vào trang trong (ví dụ /dashboard)
       router.push("/");
     },
     onError: (error: any) => {
       console.error(error);
-      setErrorMsg(error.response?.data?.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại!");
+      toast.error(error.message || "Đăng nhập thất bại. Vui lòng kiểm tra lại!");
     }
   });
 
@@ -70,13 +75,6 @@ export default function LoginPage() {
           </div>
 
           <form className="space-y-6" onSubmit={handleSubmit}>
-
-            {/* Hiển thị lỗi nếu có */}
-            {errorMsg && (
-              <div className="p-3 rounded-lg bg-red-100 border border-red-200 text-red-600 text-sm font-medium text-center">
-                {errorMsg}
-              </div>
-            )}
 
             {/* Email Input */}
             <Field className="space-y-2">

@@ -17,7 +17,7 @@ import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUpDown, In
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
-  data: TData[];
+  dataTable: TData[];
   globalFilter?: string;
   filterContent?: ReactNode;
   sorting?: SortingState;
@@ -31,7 +31,7 @@ interface DataTableProps<TData, TValue> {
 
 export function DataTable<TData, TValue>({
   columns,
-  data,
+  dataTable,
   globalFilter = "",
   filterContent,
   sorting,
@@ -52,7 +52,7 @@ export function DataTable<TData, TValue>({
   const handlePaginationChange = onPaginationChange || setInternalPagination;
 
   const table = useReactTable({
-    data,
+    data: dataTable,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -90,7 +90,7 @@ export function DataTable<TData, TValue>({
                     return (
                       <th
                         key={header.id}
-                        className="px-6 py-4 whitespace-nowrap cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        className="px-6 py-3 whitespace-nowrap cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                         onClick={header.column.getToggleSortingHandler()}
                       >
                         <div className="flex items-center gap-2">
@@ -116,7 +116,7 @@ export function DataTable<TData, TValue>({
                     className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors"
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className="px-6 py-4">
+                      <td key={cell.id} className="px-6 py-2.5">
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext()
@@ -161,8 +161,7 @@ export function DataTable<TData, TValue>({
                     <ListboxOption
                       key={pageSize}
                       className={({ active }) =>
-                        `relative cursor-pointer select-none py-2 pl-8 pr-4 ${
-                          active ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'
+                        `relative cursor-pointer select-none py-2 pl-8 pr-4 ${active ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'
                         }`
                       }
                       value={pageSize}
@@ -195,11 +194,11 @@ export function DataTable<TData, TValue>({
             >
               <ChevronLeft size={18} />
             </Button>
-            
+
             {(() => {
               const pageCount = table.getPageCount();
               if (pageCount === 0) return null;
-              
+
               const pageIndex = table.getState().pagination.pageIndex;
               let pages = [];
               if (pageCount <= 5) {
@@ -214,11 +213,10 @@ export function DataTable<TData, TValue>({
                 <Button
                   key={page}
                   onClick={() => table.setPageIndex(page)}
-                  className={`min-w-[32px] h-8 px-2 flex items-center justify-center rounded-md text-sm font-medium transition-colors cursor-pointer ${
-                    pageIndex === page
-                      ? "bg-blue-600 text-white hover:bg-blue-700 shadow-sm"
-                      : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
-                  }`}
+                  className={`min-w-[32px] h-8 px-2 flex items-center justify-center rounded-md text-sm font-medium transition-colors cursor-pointer ${pageIndex === page
+                    ? "bg-blue-600 text-white hover:bg-blue-700 shadow-sm"
+                    : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+                    }`}
                 >
                   {page + 1}
                 </Button>

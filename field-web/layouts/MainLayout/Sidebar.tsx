@@ -118,8 +118,14 @@ export const Sidebar = () => {
       {/* Menu Items */}
       <nav className="p-4 space-y-2 overflow-y-visible h-[calc(100vh-4rem)]">
         {MENU_CONFIG.map((item) => {
+          const hasSubItemsConfigured = item.subItems && item.subItems.length > 0;
           const visibleSubItems = item.subItems?.filter(sub => hasPermission(sub.permission)) || [];
           const hasVisibleSubItems = visibleSubItems.length > 0;
+
+          // Nếu menu này là một thư mục (có cấu hình subItems) nhưng lại không có subItem nào được phép hiển thị, thì ẩn thư mục đó luôn
+          if (hasSubItemsConfigured && !hasVisibleSubItems) {
+            return null;
+          }
 
           if (!hasPermission(item.permission) && !hasVisibleSubItems) {
             return null;

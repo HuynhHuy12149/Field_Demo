@@ -15,21 +15,33 @@ export interface RoleRequest {
 }
 
 export const rolesService = {
-  getAll: async (pageIndex = 1, pageSize = 10, searchTerm = "", sortColumn?: string, sortOrder?: string): Promise<PagedResponse<RoleResponse>> => {
-    return await apiClient.get<any, PagedResponse<RoleResponse>>("/Roles", {
-      params: { pageIndex, pageSize, searchTerm, sortColumn, sortOrder }
-    });
+  getAll: async (params: {
+    pageIndex: number;
+    pageSize: number;
+    searchTerm?: string;
+    sortColumn?: string;
+    sortOrder?: string;
+  }): Promise<PagedResponse<RoleResponse>> => {
+    return apiClient.get("/Roles", { params });
   },
 
-  create: async (data: RoleRequest): Promise<ApiResponse<RoleResponse>> => {
-    return await apiClient.post<any, ApiResponse<RoleResponse>>("/Roles", data);
+  create: async (data: RoleRequest): Promise<RoleResponse> => {
+    return apiClient.post("/Roles", data);
   },
 
-  update: async (id: number, data: RoleRequest): Promise<ApiResponse<RoleResponse>> => {
-    return await apiClient.put<any, ApiResponse<RoleResponse>>(`/Roles/${id}`, data);
+  update: async (id: number, data: RoleRequest): Promise<RoleResponse> => {
+    return apiClient.put(`/Roles/${id}`, data);
   },
 
-  delete: async (id: number): Promise<ApiResponse<boolean>> => {
-    return await apiClient.delete<any, ApiResponse<boolean>>(`/Roles/${id}`);
+  delete: async (id: number): Promise<boolean> => {
+    return apiClient.delete(`/Roles/${id}`);
+  },
+
+  getClaims: async (id: number): Promise<string[]> => {
+    return apiClient.get(`/Roles/${id}/claims`);
+  },
+
+  updateClaims: async (id: number, claims: string[]): Promise<boolean> => {
+    return apiClient.post(`/Roles/${id}/claims`, claims);
   }
 };

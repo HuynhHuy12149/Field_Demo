@@ -29,7 +29,25 @@ namespace FieldServiceAPI.Services.Auth
             }
 
             // Verify password
-            bool isValid = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
+            bool isValid = false;
+            try
+            {
+                isValid = BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash);
+            }
+            catch (BCrypt.Net.SaltParseException)
+            {
+                // Xử lý trường hợp mật khẩu cũ chưa được băm
+                isValid = (request.Password == user.PasswordHash);
+                
+                // Cập nhật lại mật khẩu thành dạng băm để lần sau không bị nữa
+                if (isValid)
+                {
+                    user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+                    _context.Users.Update(user);
+                    await _context.SaveChangesAsync();
+                }
+            }
+
             if (!isValid)
             {
                 return null;
@@ -38,11 +56,24 @@ namespace FieldServiceAPI.Services.Auth
             // Generate Token
             var token = GenerateJwtToken(user);
 
+            // Fetch Permissions
+            var permissions = await _context.UserRoles
+                .Where(ur => ur.UserId == user.Id)
+                .Join(_context.RoleClaims, 
+                      ur => ur.RoleId, 
+                      rc => rc.RoleId, 
+                      (ur, rc) => rc)
+                .Where(rc => rc.ClaimType == "Permission")
+                .Select(rc => rc.ClaimValue)
+                .Distinct()
+                .ToListAsync();
+
             return new LoginResponse
             {
                 Token = token,
                 FullName = user.FullName,
-                Email = user.Email
+                Email = user.Email,
+                Permissions = permissions
             };
         }
 
@@ -52,9 +83,8 @@ namespace FieldServiceAPI.Services.Auth
             var existingAdmin = await _context.Users.FirstOrDefaultAsync(u => u.Email == adminEmail);
             if (existingAdmin == null)
             {
-                var newAdmin = new User
+                var newAdmin = new FieldServiceAPI.Entities.User
                 {
-                    Id = Guid.NewGuid(),
                     FullName = "System Administrator",
                     Email = adminEmail,
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456"),
@@ -68,7 +98,7 @@ namespace FieldServiceAPI.Services.Auth
             }
         }
 
-        private string GenerateJwtToken(User user)
+        private string GenerateJwtToken(FieldServiceAPI.Entities.User user)
         {
             var jwtSettings = _configuration.GetSection("JwtSettings");
             var secretKey = jwtSettings["SecretKey"];

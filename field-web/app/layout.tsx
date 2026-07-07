@@ -40,7 +40,25 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             {children}
-            <Toaster position="top-center" />
+            <Toaster 
+              position="top-center" 
+              toastOptions={{
+                duration: 3000,
+                className: 'dark:bg-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 shadow-lg',
+                style: {
+                  padding: '12px 20px',
+                  borderRadius: '12px',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                },
+                success: {
+                  iconTheme: { primary: '#10b981', secondary: '#fff' }
+                },
+                error: {
+                  iconTheme: { primary: '#ef4444', secondary: '#fff' }
+                }
+              }}
+            />
           </ThemeProvider>
         </QueryProvider>
       </body>

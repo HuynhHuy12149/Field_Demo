@@ -1,10 +1,11 @@
 using FieldServiceAPI.Entities;
 using FieldServiceAPI.DTOs.Province;
 using Riok.Mapperly.Abstractions;
+#pragma warning disable RMG012
 
 namespace FieldServiceAPI.Mappers
 {
-    [Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Target)]
+    [Mapper]
     public static partial class GlobalMapper
     {
         // ----------------------------------------------------
@@ -28,6 +29,12 @@ namespace FieldServiceAPI.Mappers
         public static partial Role ToEntity(this FieldServiceAPI.DTOs.Role.RoleRequest roleRequest);
         public static partial IQueryable<FieldServiceAPI.DTOs.Role.RoleResponse> ProjectToDTO(this IQueryable<Role> query);
         public static partial void UpdateEntity(this FieldServiceAPI.DTOs.Role.RoleRequest request, Role entity);
-        
+        // ----------------------------------------------------
+        // 4. Nhóm Mapping cho USER
+        // ----------------------------------------------------
+        public static partial FieldServiceAPI.DTOs.Users.UserResponse ToDTO(this User user);
+        public static partial User ToEntity(this FieldServiceAPI.DTOs.Users.UserRequest userRequest);
+        public static partial IQueryable<FieldServiceAPI.DTOs.Users.UserResponse> ProjectToDTO(this IQueryable<User> query);
+        public static partial void UpdateEntity(this FieldServiceAPI.DTOs.Users.UserRequest request, User entity);
     }
 }

@@ -1,7 +1,7 @@
-import { 
-  LayoutDashboard, 
-  Users, 
-  FileText, 
+import {
+  LayoutDashboard,
+  Users,
+  FileText,
   Settings,
   Shield,
   UserCog,
@@ -17,34 +17,28 @@ export type MenuItem = {
 };
 
 export const MENU_CONFIG: MenuItem[] = [
-  { 
-    name: "Tổng quan", 
-    path: "/", 
+  {
+    name: "Tổng quan",
+    path: "/",
     icon: LayoutDashboard,
-    // permission: "VIEW_DASHBOARD" // Tạm thời comment, ai cũng thấy trang này
+    // permission: "VIEW_DASHBOARD" // Dashboard thì ai cũng xem được nên không cần
   },
-  { 
-    name: "Hệ thống", 
+  {
+    name: "Hệ thống",
     icon: Settings,
-    // permission: "VIEW_SYSTEM", 
+    // permission: "VIEW_SYSTEM", // Chỉ cần check permission của menu con là đủ
     subItems: [
       {
         name: "Người dùng",
         path: "/system/users",
         icon: UserCog,
-        // permission: "VIEW_USERS"
+        permission: "Users.View"
       },
       {
         name: "Nhóm quyền",
         path: "/system/roles",
         icon: Shield,
-        // permission: "VIEW_ROLES"
-      },
-      {
-        name: "Phân quyền",
-        path: "/system/permissions",
-        icon: Key,
-        // permission: "VIEW_PERMISSIONS"
+        permission: "Roles.View"
       }
     ]
   },

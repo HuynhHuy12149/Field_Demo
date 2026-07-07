@@ -2,7 +2,7 @@ namespace FieldServiceAPI.Entities
 {
     public class UserRole : BaseEntity
     {
-        public Guid UserId { get; set; }
+        public int UserId { get; set; }
         public User User { get; set; } = default!;
 
         public int RoleId { get; set; }

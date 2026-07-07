@@ -2,14 +2,13 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
-import { MoreHorizontal, Edit, Trash, Key } from "lucide-react";
-import { RoleResponse } from "@/core/services/roles.service";
+import { MoreHorizontal, Edit, Trash } from "lucide-react";
+import { UserResponse } from "@/core/services/users.service";
 
 export const getColumns = (
-  onEdit: (role: RoleResponse) => void,
-  onDelete: (id: number) => void,
-  onPermissions: (role: RoleResponse) => void
-): ColumnDef<RoleResponse>[] => [
+  onEdit: (user: UserResponse) => void,
+  onDelete: (id: number) => void
+): ColumnDef<UserResponse>[] => [
   {
     id: "index",
     header: "STT",
@@ -24,11 +23,11 @@ export const getColumns = (
     },
   },
   {
-    accessorKey: "name",
-    header: "Tên nhóm quyền",
+    accessorKey: "fullName",
+    header: "Họ tên",
     cell: (info) => (
       <div 
-        className="font-medium text-slate-800 dark:text-slate-200 max-w-[150px] md:max-w-[250px] truncate"
+        className="font-medium text-slate-800 dark:text-slate-200 max-w-[150px] md:max-w-[200px] truncate"
         title={info.getValue() as string}
       >
         {info.getValue() as string}
@@ -36,19 +35,24 @@ export const getColumns = (
     ),
   },
   {
-    accessorKey: "description",
-    header: "Mô tả",
+    accessorKey: "email",
+    header: "Email",
     cell: (info) => {
-      const desc = info.getValue() as string;
+      const email = info.getValue() as string;
       return (
         <div 
-          className="max-w-[200px] md:max-w-[350px] lg:max-w-[500px] truncate text-slate-500" 
-          title={desc}
+          className="max-w-[150px] md:max-w-[250px] truncate text-slate-500"
+          title={email}
         >
-          {desc || "-"}
+          {email}
         </div>
       );
     },
+  },
+  {
+    accessorKey: "phone",
+    header: "Số điện thoại",
+    cell: (info) => info.getValue() || "-",
   },
   {
     accessorKey: "isActive",
@@ -61,7 +65,7 @@ export const getColumns = (
         </span>
       ) : (
         <span className="inline-flex items-center rounded-md bg-red-50 dark:bg-red-500/10 px-2 py-1 text-xs font-medium text-red-700 dark:text-red-400 ring-1 ring-inset ring-red-600/10">
-          Ngừng hoạt động
+          Khóa
         </span>
       );
     },
@@ -70,7 +74,7 @@ export const getColumns = (
     id: "actions",
     header: "Thao tác",
     cell: ({ row }) => {
-      const role = row.original;
+      const user = row.original;
       return (
         <Menu as="div" className="relative inline-block text-left">
           <div>
@@ -85,7 +89,7 @@ export const getColumns = (
             <div className="py-1">
               <MenuItem>
                 <button
-                  onClick={() => onEdit(role)}
+                  onClick={() => onEdit(user)}
                   className="group flex w-full items-center px-4 py-2 text-sm text-slate-700 dark:text-slate-300 data-[focus]:bg-slate-100 dark:data-[focus]:bg-slate-700 data-[focus]:text-slate-900 dark:data-[focus]:text-white"
                 >
                   <Edit className="mr-3 h-4 w-4 text-slate-400 group-data-[focus]:text-slate-500" />
@@ -94,16 +98,7 @@ export const getColumns = (
               </MenuItem>
               <MenuItem>
                 <button
-                  onClick={() => onPermissions(role)}
-                  className="group flex w-full items-center px-4 py-2 text-sm text-slate-700 dark:text-slate-300 data-[focus]:bg-slate-100 dark:data-[focus]:bg-slate-700 data-[focus]:text-slate-900 dark:data-[focus]:text-white"
-                >
-                  <Key className="mr-3 h-4 w-4 text-slate-400 group-data-[focus]:text-slate-500" />
-                  Phân quyền
-                </button>
-              </MenuItem>
-              <MenuItem>
-                <button
-                  onClick={() => onDelete(role.id)}
+                  onClick={() => onDelete(user.id)}
                   className="group flex w-full items-center px-4 py-2 text-sm text-red-600 dark:text-red-400 data-[focus]:bg-red-50 dark:data-[focus]:bg-red-500/10"
                 >
                   <Trash className="mr-3 h-4 w-4 text-red-500 group-data-[focus]:text-red-600" />

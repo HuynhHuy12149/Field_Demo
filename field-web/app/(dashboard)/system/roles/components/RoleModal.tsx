@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { RoleRequest, RoleResponse } from "@/core/services/roles.service";
 import { Button } from "@/components/Button/Button";
 import { Modal } from "@/components/Modal/Modal";
+import { validateFields } from "@/core/utils/validation";
 import toast from "react-hot-toast";
 
 interface RoleModalProps {
@@ -12,38 +13,61 @@ interface RoleModalProps {
 }
 
 export function RoleModal({ isOpen, onClose, onSave, initialData }: RoleModalProps) {
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [isActive, setIsActive] = useState(true);
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    isActive: true,
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       if (initialData) {
-        setName(initialData.name);
-        setDescription(initialData.description || "");
-        setIsActive(initialData.isActive);
+        setFormData({
+          name: initialData.name,
+          description: initialData.description || "",
+          isActive: initialData.isActive,
+        });
       } else {
-        setName("");
-        setDescription("");
-        setIsActive(true);
+        setFormData({
+          name: "",
+          description: "",
+          isActive: true,
+        });
       }
     }
   }, [isOpen, initialData]);
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value, type } = e.target;
+
+    // Nếu là checkbox thì lấy checked thay vì value
+    const val = type === "checkbox" ? (e.target as HTMLInputElement).checked : value;
+
+    setFormData((prev) => ({
+      ...prev,
+      [id]: val,
+    }));
+  };
+
+  const validateForm = () => {
+    return validateFields([
+      { value: formData.name, errorMessage: "Vui lòng nhập tên nhóm quyền!" },
+      // Bạn có thể dễ dàng thêm nhiều trường vào đây
+    ]);
+  };
+
   const handleSubmit = async (e: any) => {
     e.preventDefault();
-    if (!name.trim()) {
-      toast.error("Vui lòng nhập tên nhóm quyền!");
-      return;
-    }
+
+    // if (!validateForm()) return;
 
     try {
       setIsSubmitting(true);
-      await onSave({ name, description, isActive }, initialData?.id);
-    } catch (error) {
-      console.error(error);
-      toast.error("Đã xảy ra lỗi khi lưu thông tin");
+      await onSave(formData, initialData?.id);
+    } catch {
+      // Bỏ qua lỗi ném ra ở đây vì page.tsx đã hiển thị Toast báo lỗi rồi
+      // Catch ở đây để Next.js không hiện màn hình đen "Uncaught Promise Rejection"
     } finally {
       setIsSubmitting(false);
     }
@@ -53,7 +77,7 @@ export function RoleModal({ isOpen, onClose, onSave, initialData }: RoleModalPro
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={initialData ? "Chỉnh sửa nhóm quyền" : "Thêm mới nhóm quyền"}
+      title={initialData ? "Cập nhật nhóm quyền" : "Thêm nhóm quyền"}
       maxWidth="2xl"
       position="center"
       footer={
@@ -85,11 +109,11 @@ export function RoleModal({ isOpen, onClose, onSave, initialData }: RoleModalPro
           <input
             type="text"
             id="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={formData.name}
+            onChange={handleChange}
             className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             placeholder="Nhập tên..."
-            required
+          // required
           />
         </div>
 
@@ -100,8 +124,8 @@ export function RoleModal({ isOpen, onClose, onSave, initialData }: RoleModalPro
           <textarea
             id="description"
             rows={3}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            value={formData.description}
+            onChange={handleChange}
             className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             placeholder="Nhập mô tả..."
           />
@@ -111,8 +135,8 @@ export function RoleModal({ isOpen, onClose, onSave, initialData }: RoleModalPro
           <input
             id="isActive"
             type="checkbox"
-            checked={isActive}
-            onChange={(e) => setIsActive(e.target.checked)}
+            checked={formData.isActive}
+            onChange={handleChange}
             className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:ring-offset-slate-800"
           />
           <label htmlFor="isActive" className="ml-2 block text-sm text-slate-900 dark:text-slate-300">

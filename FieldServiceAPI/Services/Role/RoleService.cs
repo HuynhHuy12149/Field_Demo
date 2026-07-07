@@ -28,8 +28,10 @@ namespace FieldServiceAPI.Services.Role
             var response = new PagedResponse();
             try
             {
+                var searchTerm = pagedRequest.SearchTerm?.NormalizeSearch();
+
                 var query = _context.Roles.AsQueryable()
-                    .WhereIf(!string.IsNullOrEmpty(pagedRequest.SearchTerm), x => x.Name.Contains(pagedRequest.SearchTerm!))
+                    .WhereIf(!string.IsNullOrEmpty(searchTerm), x => x.Name.ToLower().Contains(searchTerm!))
                     .OrderByDynamic(pagedRequest.SortColumn, pagedRequest.SortOrder);
 
                 int totalRecords = await query.CountAsync();
@@ -122,6 +124,63 @@ namespace FieldServiceAPI.Services.Role
                 response.Data = true;
                 response.Success = true;
                 response.Message = "Xóa Nhóm quyền thành công";
+            }
+            catch (Exception ex)
+            {
+                await _errorLogService.LogErrorAsync(ex);
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+
+        public async Task<ApiResponse> GetRoleClaimsAsync(int roleId)
+        {
+            var response = new ApiResponse();
+            try
+            {
+                var claims = await _context.RoleClaims
+                    .Where(x => x.RoleId == roleId && x.ClaimType == "Permission")
+                    .Select(x => x.ClaimValue)
+                    .ToListAsync();
+                
+                response.Data = claims;
+                response.Success = true;
+            }
+            catch (Exception ex)
+            {
+                await _errorLogService.LogErrorAsync(ex);
+                response.Message = ex.Message;
+            }
+            return response;
+        }
+
+        public async Task<ApiResponse> UpdateRoleClaimsAsync(int roleId, List<string> claims)
+        {
+            var response = new ApiResponse();
+            try
+            {
+                var existingClaims = await _context.RoleClaims
+                    .Where(x => x.RoleId == roleId && x.ClaimType == "Permission")
+                    .ToListAsync();
+                _context.RoleClaims.RemoveRange(existingClaims);
+
+                if (claims != null && claims.Any())
+                {
+                    var newClaims = claims.Select(c => new RoleClaim
+                    {
+                        RoleId = roleId,
+                        ClaimType = "Permission",
+                        ClaimValue = c
+                    }).ToList();
+                    
+                    _context.RoleClaims.AddRange(newClaims);
+                }
+                
+                await _context.SaveChangesAsync();
+
+                response.Data = true;
+                response.Success = true;
+                response.Message = "Cập nhật Phân quyền thành công";
             }
             catch (Exception ex)
             {

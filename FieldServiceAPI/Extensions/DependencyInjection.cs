@@ -16,6 +16,8 @@ namespace FieldServiceAPI.Extensions
             );
 
             // 2. Đăng ký các Business Services
+            services.AddScoped<FieldServiceAPI.Services.User.UserService>();
+
             services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll",
