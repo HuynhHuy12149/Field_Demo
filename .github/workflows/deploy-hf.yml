@@ -52,6 +52,10 @@ jobs:
           git init -b main
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
+          git lfs install
+          git lfs track "*.dll"
+          git lfs track "*.woff2"
+          git lfs track "*.ico"
           git add .
           git commit -m "Deploy from GitHub Actions"
           git push --force https://huynhhuy12149:$HF_TOKEN@huggingface.co/spaces/huynhhuy12149/fieldserviceapi main
