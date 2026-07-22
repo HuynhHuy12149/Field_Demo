@@ -12,7 +12,7 @@ RUN npm run build
 # Kết quả build sẽ nằm ở thư mục /fe/out
 
 # ---------- BƯỚC 2: BUILD BACKEND (.NET) ----------
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build-be
+FROM mcr.microsoft.com/dotnet/sdk:10.0-preview AS build-be
 WORKDIR /app
 
 COPY FieldServiceAPI/*.csproj ./FieldServiceAPI/
@@ -22,7 +22,7 @@ COPY FieldServiceAPI/. ./FieldServiceAPI/
 RUN dotnet publish ./FieldServiceAPI/FieldServiceAPI.csproj -c Release -o /app/out
 
 # ---------- BƯỚC 3: GỘP CHUNG VÀ CHẠY ----------
-FROM mcr.microsoft.com/dotnet/aspnet:9.0
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-preview
 WORKDIR /app
 
 # 1. Copy file chạy của Backend

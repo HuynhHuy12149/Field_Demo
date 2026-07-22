@@ -1,5 +1,5 @@
 # Chỉ dùng image Runtime siêu nhẹ của .NET (không chứa SDK nặng nề)
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-preview AS base
 WORKDIR /app
 
 # Copy toàn bộ file đã được GitHub biên dịch vào máy chủ HF
