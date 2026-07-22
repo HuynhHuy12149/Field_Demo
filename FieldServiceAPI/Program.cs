@@ -66,19 +66,28 @@ app.UseAuthorization();
 app.Use(async (context, next) =>
 {
     var path = context.Request.Path.Value;
-    if (!string.IsNullOrEmpty(path) && !path.StartsWith("/api") && !Path.HasExtension(path))
+    if (!string.IsNullOrEmpty(path) && !path.StartsWith("/api"))
     {
         var env = context.RequestServices.GetRequiredService<IWebHostEnvironment>();
         var webRoot = env.WebRootPath ?? Path.Combine(env.ContentRootPath, "wwwroot");
-        var cleanPath = path.TrimStart('/');
+        var cleanPath = path.TrimStart('/').TrimEnd('/');
 
-        if (File.Exists(Path.Combine(webRoot, cleanPath + ".html")))
+        if (string.IsNullOrEmpty(cleanPath))
         {
-            context.Request.Path = path + ".html";
+            await next();
+            return;
         }
-        else if (File.Exists(Path.Combine(webRoot, cleanPath, "index.html")))
+
+        if (!Path.HasExtension(path))
         {
-            context.Request.Path = path.TrimEnd('/') + "/index.html";
+            if (File.Exists(Path.Combine(webRoot, cleanPath + ".html")))
+            {
+                context.Request.Path = "/" + cleanPath + ".html";
+            }
+            else if (File.Exists(Path.Combine(webRoot, cleanPath, "index.html")))
+            {
+                context.Request.Path = "/" + cleanPath + "/index.html";
+            }
         }
     }
     await next();
