@@ -62,6 +62,28 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Middleware hỗ trợ định tuyến file tĩnh cho Next.js (cả dạng .html và /index.html)
+app.Use(async (context, next) =>
+{
+    var path = context.Request.Path.Value;
+    if (!string.IsNullOrEmpty(path) && !path.StartsWith("/api") && !Path.HasExtension(path))
+    {
+        var env = context.RequestServices.GetRequiredService<IWebHostEnvironment>();
+        var webRoot = env.WebRootPath ?? Path.Combine(env.ContentRootPath, "wwwroot");
+        var cleanPath = path.TrimStart('/');
+
+        if (File.Exists(Path.Combine(webRoot, cleanPath + ".html")))
+        {
+            context.Request.Path = path + ".html";
+        }
+        else if (File.Exists(Path.Combine(webRoot, cleanPath, "index.html")))
+        {
+            context.Request.Path = path.TrimEnd('/') + "/index.html";
+        }
+    }
+    await next();
+});
+
 // Phục vụ file tĩnh từ wwwroot (thư mục build của Next.js)
 app.UseDefaultFiles();
 app.UseStaticFiles();
