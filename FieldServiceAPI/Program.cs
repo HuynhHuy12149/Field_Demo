@@ -62,40 +62,24 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Middleware hỗ trợ định tuyến file tĩnh cho Next.js (cả dạng .html và /index.html)
+// Phục vụ file tĩnh từ wwwroot (thư mục build của Next.js)
+// UseDefaultFiles PHẢI đứng trước UseStaticFiles để tự động tìm index.html trong thư mục
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
+// Middleware đơn giản: nếu URL không có extension và không phải /api,
+// redirect về trailing slash để UseDefaultFiles phục vụ được page/index.html
 app.Use(async (context, next) =>
 {
-    var path = context.Request.Path.Value;
-    if (!string.IsNullOrEmpty(path) && !path.StartsWith("/api"))
+    var path = context.Request.Path.Value ?? "";
+    if (!path.StartsWith("/api") && !Path.HasExtension(path) && path.Length > 1)
     {
-        var env = context.RequestServices.GetRequiredService<IWebHostEnvironment>();
-        var webRoot = env.WebRootPath ?? Path.Combine(env.ContentRootPath, "wwwroot");
-        var cleanPath = path.TrimStart('/').TrimEnd('/');
-
-        if (string.IsNullOrEmpty(cleanPath))
-        {
-            await next();
-            return;
-        }
-
-        if (!Path.HasExtension(path))
-        {
-            if (File.Exists(Path.Combine(webRoot, cleanPath + ".html")))
-            {
-                context.Request.Path = "/" + cleanPath + ".html";
-            }
-            else if (File.Exists(Path.Combine(webRoot, cleanPath, "index.html")))
-            {
-                context.Request.Path = "/" + cleanPath + "/index.html";
-            }
-        }
+        var cleanPath = path.TrimEnd('/');
+        context.Response.Redirect(cleanPath + "/", permanent: false);
+        return;
     }
     await next();
 });
-
-// Phục vụ file tĩnh từ wwwroot (thư mục build của Next.js)
-app.UseDefaultFiles();
-app.UseStaticFiles();
 
 app.MapControllers();
 // Static export: mỗi trang có file HTML riêng, không cần SPA fallback về index.html
