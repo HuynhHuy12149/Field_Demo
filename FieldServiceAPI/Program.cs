@@ -98,7 +98,9 @@ app.UseDefaultFiles();
 app.UseStaticFiles();
 
 app.MapControllers();
-app.MapFallbackToFile("index.html");
+// Static export: mỗi trang có file HTML riêng, không cần SPA fallback về index.html
+// Dùng 404.html để tránh bị redirect nhầm về trang Tenant
+app.MapFallbackToFile("404.html");
 
 // Lấy port từ Render (hoặc HuggingFace)
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
