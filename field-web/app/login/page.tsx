@@ -1,24 +1,42 @@
 "use client";
-import { Field, Label, Input, Button } from '@headlessui/react';
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { authService } from "@/core/services/auth.service";
+import { authService } from "@/core/services/tenant/auth.service";
 import { useAuthStore } from "@/core/store/useAuthStore";
 import { useRouter } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
 
 import toast from "react-hot-toast";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("admin@gmail.com");
-  const [password, setPassword] = useState("123456");
+  const [tenantSchema, setTenantSchema] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const setAuth = useAuthStore((state) => state.setAuth);
   const router = useRouter();
 
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("tenantAdminEmail");
+    const savedSchema = localStorage.getItem("tenantSchema");
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+    if (savedSchema) {
+      setTenantSchema(savedSchema);
+    }
+  }, []);
+
   const loginMutation = useMutation({
     mutationFn: async () => {
-      return await authService.login({ email, password });
+      return await authService.login({ email, password, tenantSchema: tenantSchema || undefined });
     },
     onSuccess: (data) => {
       if (!data.permissions || data.permissions.length === 0) {
@@ -42,7 +60,19 @@ export default function LoginPage() {
 
   const handleSubmit = (e: any) => {
     e.preventDefault();
-    if (!email || !password) return;
+    if (!email || !password) {
+      toast.error("Vui lòng nhập đầy đủ Email và Mật khẩu!");
+      return;
+    }
+
+    if (rememberMe) {
+      localStorage.setItem("tenantAdminEmail", email);
+      if (tenantSchema) localStorage.setItem("tenantSchema", tenantSchema);
+    } else {
+      localStorage.removeItem("tenantAdminEmail");
+      localStorage.removeItem("tenantSchema");
+    }
+
     loginMutation.mutate();
   };
 
@@ -76,52 +106,86 @@ export default function LoginPage() {
 
           <form className="space-y-6" onSubmit={handleSubmit}>
 
-            {/* Email Input */}
-            <Field className="space-y-2">
+            {/* Workspace Code Input */}
+            <div className="space-y-2">
               <Label className="text-sm font-semibold text-slate-700 dark:text-slate-200 ml-1">
-                Email
+                Mã Workspace (Tùy chọn)
+              </Label>
+              <div className="relative group">
+                <Input
+                  type="text"
+                  value={tenantSchema}
+                  onChange={(e) => setTenantSchema(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-white/10 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all duration-300 backdrop-blur-sm group-hover:bg-white/80 dark:group-hover:bg-slate-900/70"
+                  placeholder="VD: congty_a (Bỏ trống nếu là Admin)"
+                  disabled={loginMutation.isPending}
+                />
+              </div>
+            </div>
+
+            {/* Email Input */}
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold text-slate-700 dark:text-slate-200 ml-1">
+                Email <span className="text-red-500">*</span>
               </Label>
               <div className="relative group">
                 <Input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-5 py-4 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-white/10 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all duration-300 backdrop-blur-sm group-hover:bg-white/80 dark:group-hover:bg-slate-900/70"
+                  className="w-full px-4 py-2.5 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-white/10 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all duration-300 backdrop-blur-sm group-hover:bg-white/80 dark:group-hover:bg-slate-900/70"
                   placeholder="admin@gmail.com"
                   required
                   disabled={loginMutation.isPending}
                 />
               </div>
-            </Field>
+            </div>
 
             {/* Password Input */}
-            <Field className="space-y-2">
+            <div className="space-y-2">
               <div className="flex justify-between items-center ml-1">
                 <Label className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                  Mật khẩu
+                  Mật khẩu <span className="text-red-500">*</span>
                 </Label>
-                <a href="#" className="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors font-medium">
-                  Quên mật khẩu?
-                </a>
               </div>
               <div className="relative group">
                 <Input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-5 py-4 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-white/10 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all duration-300 backdrop-blur-sm group-hover:bg-white/80 dark:group-hover:bg-slate-900/70"
+                  className="w-full px-4 py-2.5 pr-10 bg-white/50 dark:bg-slate-900/50 border border-slate-300 dark:border-white/10 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all duration-300 backdrop-blur-sm group-hover:bg-white/80 dark:group-hover:bg-slate-900/70"
                   placeholder="••••••••"
                   required
                   disabled={loginMutation.isPending}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
-            </Field>
+            </div>
+
+            {/* Remember Me Checkbox */}
+            <div className="flex items-center ml-1 mt-4 space-x-2">
+              <Checkbox
+                id="remember-me"
+                checked={rememberMe}
+                onCheckedChange={(checked) => setRememberMe(checked === true)}
+                className="border-slate-300 dark:border-slate-600 data-[state=checked]:bg-purple-600 data-[state=checked]:text-white"
+              />
+              <label htmlFor="remember-me" className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Ghi nhớ tài khoản
+              </label>
+            </div>
 
             {/* Submit Button */}
-            <Button
+            <button
               type="submit"
               disabled={loginMutation.isPending}
-              className="w-full flex items-center justify-center py-4 px-6 mt-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg transform transition-all duration-300 hover:-translate-y-1 hover:shadow-purple-500/30 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-50 dark:focus:ring-offset-slate-900 data-[disabled]:opacity-70 data-[disabled]:cursor-not-allowed data-[disabled]:transform-none cursor-pointer"
+              className="w-full flex items-center justify-center py-2.5 px-4 mt-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-lg shadow-md transform transition-all duration-300 hover:-translate-y-0.5 hover:shadow-purple-500/30 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-50 dark:focus:ring-offset-slate-900 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none cursor-pointer"
             >
               {loginMutation.isPending ? (
                 <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -130,7 +194,7 @@ export default function LoginPage() {
                 </svg>
               ) : null}
               {loginMutation.isPending ? "Đang xử lý..." : "Đăng Nhập"}
-            </Button>
+            </button>
 
           </form>
 

@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from '@headlessui/react';
-import { Plus } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 interface AddButtonProps {
   label?: string;
@@ -9,12 +9,9 @@ interface AddButtonProps {
   className?: string;
 }
 
-export const AddButton = ({ onClick, label = "Thêm mới" }: AddButtonProps) => {
+export const AddButton = ({ onClick, label = "Thêm mới", className = "" }: AddButtonProps) => {
   return (
-    <Button
-      onClick={onClick}
-      className="inline-flex h-10 items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 transition-colors cursor-pointer"
-    >
+    <Button onClick={onClick} className={`gap-2 ${className}`}>
       <Plus size={18} strokeWidth={2.5} />
       <span>{label}</span>
     </Button>

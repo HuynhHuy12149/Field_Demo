@@ -1,5 +1,5 @@
 import { Search } from "lucide-react";
-import { Button } from "@headlessui/react";
+import { Button } from "@/components/ui/button";
 
 interface SearchButtonProps {
   onClick: () => void;
@@ -11,7 +11,7 @@ export const SearchButton = ({ onClick, label = "Tìm kiếm", className = "" }:
   return (
     <Button
       onClick={onClick}
-      className={`inline-flex h-10 font-medium items-center justify-center gap-2 rounded-lg bg-slate-800 dark:bg-slate-700 px-4 border border-transparent text-sm text-white hover:bg-slate-700 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 cursor-pointer ${className}`}
+      className={`gap-2 bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-600 dark:hover:bg-blue-700 dark:text-white ${className}`}
     >
       <Search size={16} />
       <span>{label}</span>

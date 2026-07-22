@@ -8,7 +8,7 @@ interface User {
   email: string;
   fullName: string;
   permissions?: string[];
-  // Bổ sung các field cần thiết khác
+  type?: string;
 }
 
 interface AuthState {

@@ -3,23 +3,35 @@
 import { useAuthStore } from "@/core/store/useAuthStore";
 import { useUIStore } from "@/core/store/useUIStore";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { LogOut, Menu as MenuIcon, User, ChevronDown } from "lucide-react";
+import { LogOut, Menu as MenuIcon, User, ChevronDown, Key } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Menu, Transition } from "@headlessui/react";
-import { Fragment } from "react";
+import { ChangePasswordModal } from "@/components/Modal/ChangePasswordModal";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const Topbar = () => {
   const router = useRouter();
   const { user, logout } = useAuthStore();
   const { isSidebarCollapsed, toggleSidebar } = useUIStore();
   const queryClient = useQueryClient();
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
   const handleLogout = () => {
+    const isSuperAdmin = user?.type === "SuperAdmin";
     logout();
     queryClient.clear();
-    localStorage.clear();
-    router.push("/login");
+    if (isSuperAdmin) {
+      router.push("/system-login");
+    } else {
+      router.push("/login");
+    }
   };
 
   return (
@@ -46,10 +58,8 @@ export const Topbar = () => {
 
         <div className="h-8 w-px bg-slate-200 dark:bg-slate-800"></div>
 
-        {/* Headless UI Dropdown Menu */}
-        <Menu as="div" className="relative inline-block text-left">
-          <div>
-            <Menu.Button className="flex items-center gap-2 p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500/50 cursor-pointer">
+        <DropdownMenu>
+          <DropdownMenuTrigger className="flex items-center gap-2 p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500/50 cursor-pointer">
               <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center text-white font-bold shadow-sm">
                 {user?.fullName?.charAt(0)?.toUpperCase() || "A"}
               </div>
@@ -62,53 +72,28 @@ export const Topbar = () => {
                 </span>
               </div>
               <ChevronDown size={16} className="text-slate-400 hidden sm:block" />
-            </Menu.Button>
-          </div>
-
-          <Transition
-            as={Fragment}
-            enter="transition ease-out duration-100"
-            enterFrom="transform opacity-0 scale-95"
-            enterTo="transform opacity-100 scale-100"
-            leave="transition ease-in duration-75"
-            leaveFrom="transform opacity-100 scale-100"
-            leaveTo="transform opacity-0 scale-95"
-          >
-            <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right divide-y divide-slate-100 dark:divide-slate-800/50 rounded-xl bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black/5 dark:ring-white/10 focus:outline-none">
-              <div className="px-1 py-1">
-                <Menu.Item>
-                  {({ active }) => (
-                    <button
-                      className={`${
-                        active ? "bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400" : "text-slate-700 dark:text-slate-300"
-                      } group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium transition-colors cursor-pointer`}
-                    >
-                      <User className="mr-2 h-4 w-4" aria-hidden="true" />
-                      Hồ sơ của tôi
-                    </button>
-                  )}
-                </Menu.Item>
-              </div>
-              
-              <div className="px-1 py-1">
-                <Menu.Item>
-                  {({ active }) => (
-                    <button
-                      onClick={handleLogout}
-                      className={`${
-                        active ? "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400" : "text-red-500 dark:text-red-500"
-                      } group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium transition-colors cursor-pointer`}
-                    >
-                      <LogOut className="mr-2 h-4 w-4" aria-hidden="true" />
-                      Đăng xuất
-                    </button>
-                  )}
-                </Menu.Item>
-              </div>
-            </Menu.Items>
-          </Transition>
-        </Menu>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+            <DropdownMenuItem className="cursor-pointer">
+              <User className="mr-2 h-4 w-4" />
+              <span>Hồ sơ của tôi</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer" onClick={() => setIsPasswordModalOpen(true)}>
+              <Key className="mr-2 h-4 w-4" />
+              <span>Đổi mật khẩu</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-slate-200 dark:bg-slate-800" />
+            <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/20 cursor-pointer">
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Đăng xuất</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
+      <ChangePasswordModal 
+        isOpen={isPasswordModalOpen} 
+        onClose={() => setIsPasswordModalOpen(false)} 
+      />
     </header>
   );
 };

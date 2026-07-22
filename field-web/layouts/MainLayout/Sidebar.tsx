@@ -45,6 +45,9 @@ export const Sidebar = () => {
   };
 
   const hasPermission = (permission?: string) => {
+    const isSystemAdmin = userPermissions.includes("SystemAdmin");
+    if (isSystemAdmin && permission !== "SystemAdmin") return false;
+    if (!isSystemAdmin && permission === "SystemAdmin") return false;
     if (!permission) return true;
     return userPermissions.includes(permission);
   };

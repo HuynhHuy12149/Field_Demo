@@ -8,7 +8,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { MENU_CONFIG, MenuItem } from "@/core/config/menu.config";
 
-export const MainLayout = ({ children }: { children: React.ReactNode }) => {
+export const MainLayout = ({ children, loginUrl = "/login" }: { children: React.ReactNode, loginUrl?: string }) => {
   const router = useRouter();
   const pathname = usePathname();
   const { isAuthenticated, user } = useAuthStore();
@@ -24,11 +24,11 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    // Chỉ kiểm tra và đá về /login khi đã load xong dữ liệu từ két sắt
+    // Chỉ kiểm tra và đá về trang đăng nhập khi đã load xong dữ liệu từ két sắt
     if (isHydrated && !isAuthenticated) {
-      router.push("/login");
+      router.push(loginUrl);
     }
-  }, [isHydrated, isAuthenticated, router]);
+  }, [isHydrated, isAuthenticated, router, loginUrl]);
 
   // Kiểm tra quyền truy cập Route hiện tại
   const hasAccess = () => {

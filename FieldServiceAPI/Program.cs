@@ -1,4 +1,6 @@
 using FieldServiceAPI.Extensions;
+using FieldServiceAPI.Tenant.Data;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
@@ -18,11 +20,31 @@ builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
 
-// Tạo Scope để lấy AuthService và chạy hàm Seed
+// Tạo Scope để áp dụng migrations (nếu có) rồi chạy hàm Seed
 using (var scope = app.Services.CreateScope())
 {
-    var authService = scope.ServiceProvider.GetRequiredService<FieldServiceAPI.Services.Auth.AuthService>();
-    await authService.SeedAdminUserAsync();
+    try
+    {
+        var sysDb = scope.ServiceProvider.GetRequiredService<FieldServiceAPI.SystemAdmin.Data.SystemDbContext>();
+        
+        await sysDb.Database.MigrateAsync();
+        
+        // Cố tình bỏ qua việc Migrate AppDbContext ở đây
+        // Vì AppDbContext (dữ liệu Tenant) chỉ được Migrate khi có một Tenant mới được tạo
+        // Xem SystemTenantService.CreateTenantAsync
+    }
+    catch (Exception ex)
+    {
+        // Không dừng app nếu migration thất bại ở môi trường dev, ghi log vào console
+        Console.WriteLine($"Warning: failed to apply migrations: {ex.Message}");
+        
+        try 
+        {
+            var errorLogService = scope.ServiceProvider.GetRequiredService<FieldServiceAPI.Tenant.Services.Common.SystemErrorLogService>();
+            await errorLogService.LogErrorAsync(ex, "Program.MigrateAsync");
+        }
+        catch { }
+    }
 }
 
 // Swagger dev only

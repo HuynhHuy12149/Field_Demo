@@ -5,7 +5,8 @@ import {
   Settings,
   Shield,
   UserCog,
-  Key
+  Key,
+  Bug
 } from "lucide-react";
 
 export type MenuItem = {
@@ -18,10 +19,21 @@ export type MenuItem = {
 
 export const MENU_CONFIG: MenuItem[] = [
   {
+    name: "Quản lý Khách hàng",
+    path: "/system-dashboard",
+    icon: LayoutDashboard,
+    permission: "SystemAdmin"
+  },
+  {
+    name: "Nhật ký lỗi",
+    path: "/system-dashboard/logs",
+    icon: Bug,
+    permission: "SystemAdmin"
+  },
+  {
     name: "Tổng quan",
     path: "/",
     icon: LayoutDashboard,
-    // permission: "VIEW_DASHBOARD" // Dashboard thì ai cũng xem được nên không cần
   },
   {
     name: "Hệ thống",
