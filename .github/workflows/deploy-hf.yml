@@ -41,6 +41,14 @@ jobs:
         run: |
           mkdir -p ./publish_folder/wwwroot
           cp -r ./field-web/out/* ./publish_folder/wwwroot/
+          # Tạo bản sao dạng thư mục/index.html cho mỗi trang để hỗ trợ cả 2 kiểu URL
+          for html_file in ./publish_folder/wwwroot/*.html; do
+            page=$(basename "$html_file" .html)
+            if [ "$page" != "index" ] && [ "$page" != "404" ] && [ "$page" != "_not-found" ]; then
+              mkdir -p "./publish_folder/wwwroot/$page"
+              cp "$html_file" "./publish_folder/wwwroot/$page/index.html"
+            fi
+          done
 
       - name: 7. Đưa Dockerfile và cấu hình README vào thư mục thành phẩm
         run: |
